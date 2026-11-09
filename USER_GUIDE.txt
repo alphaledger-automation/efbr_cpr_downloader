@@ -1,0 +1,132 @@
+============================================================
+  eFBR CPR Receipt Downloader — User Guide
+============================================================
+
+WHAT IT DOES
+------------
+This application reads CPR (Computerized Payment Receipt)
+numbers from an Excel file and automatically downloads the
+corresponding PDF receipts from the Pakistan eFBR portal.
+
+Downloaded PDFs are saved to:
+  C:\Users\<YourName>\Downloads\eFBR_CPRs\
+
+A summary report (cpr_download_report.xlsx) is generated
+after processing, showing the status of each CPR.
+
+
+SETUP (AUTOMATIC)
+-----------------
+The app downloads everything it needs by itself.
+
+Only requirement: Python 3.10+ (tick "Add Python to PATH").
+  - If Python is missing, run.bat tries to install it for you
+    (via winget on Windows 10/11) or opens the download page.
+
+Then just double-click  run.bat  (or run:  python main.py).
+
+On the FIRST launch, a small "setup" window appears and:
+  1. Installs missing Python packages (customtkinter, playwright,
+     pandas, openpyxl, xlrd).
+  2. Downloads the Chromium browser (~150 MB, one time only).
+Internet access is required for this step. On later launches the
+app starts immediately.
+
+Optional: run  install.bat  (or  python main.py --setup-only)  to
+do the downloads ahead of time without opening the app.
+
+Setup log:  %LOCALAPPDATA%\eFBR_CPR_Downloader\setup.log
+
+
+BUILDING A STANDALONE EXE
+-------------------------
+To create a single .exe file that runs without Python:
+  - Double-click build_exe.bat
+  - Wait for the build to complete (2-3 minutes).
+  - Find the EXE at:  dist\eFBR_CPR_Downloader.exe
+  - Share this file - no Python needed on the target PC.
+  - The EXE does not contain Chromium; on its first launch it
+    downloads Chromium itself (internet required, one time).
+
+
+HOW TO USE
+----------
+
+1. Click "Browse ..." and select your Excel file (.xlsx or .xls).
+   - The file must have a column containing CPR numbers.
+   - Column names like "CPR", "CPR No", "CPR Number" are
+     auto-detected. Otherwise, pick the column manually
+     from the dropdown.
+
+2. Click "Start Download".
+   - A Chromium browser window will open automatically.
+   - The app navigates to the eFBR portal and downloads
+     each CPR receipt as a PDF.
+   - You can watch progress in the log window.
+
+3. Use "Pause" to temporarily halt, or "Cancel" to stop.
+
+4. When finished:
+   - Click "Open Downloads Folder" to see your PDFs.
+   - Click "View Summary Report" to open the Excel report.
+
+
+CPR NUMBER FORMAT
+-----------------
+CPR numbers look like:  IT-2024-0101-01234567890
+Dashes are preserved exactly as they appear in your file.
+The app strips only leading/trailing whitespace.
+
+
+TROUBLESHOOTING
+---------------
+- "No CPR numbers found": Check that your Excel file has a
+  column named "CPR", "CPR No", or similar. If not, select
+  the correct column from the dropdown.
+
+- Browser doesn't open / setup fails: check your internet
+  connection, firewall or proxy, then start the app again - it
+  will retry the downloads. Details are in setup.log (see above).
+
+- Download fails for a CPR: The app retries up to 2 times.
+  If it still fails, the CPR is marked "Failed" in the
+  summary report. You can check and retry manually.
+
+- Application freezes: The browser automation runs in a
+  background thread, so the GUI should stay responsive.
+  If the eFBR portal is slow, just wait.
+
+============================================================
+
+APPEARANCE
+----------
+Use the two switches at the top-right of the window:
+  Design Mode : Classic (original look) | Glass (glassmorphism) | Neumorphic | Deep (dark colours)
+  Appearance  : Light | Dark
+Your choice is remembered for the next launch. You can switch at any
+time, including while a download is running.
+
+WHEN A RUN FINISHES
+-------------------
+A summary window shows the count for each status and offers:
+  Open Excel Summary  - cpr_download_report.xlsx (one row per CPR)
+  Open Output Folder  - the folder holding the downloaded PDFs
+Both are also available from the buttons at the bottom of the main window.
+
+Status values in the Excel summary:
+  Downloaded      PDF saved to the output folder
+  File not exist  the portal has no receipt for that CPR
+  Login issue     the eFBR portal / verification page could not be reached
+  Not-Downloaded  the download failed, or the CPR was never attempted
+                  (for example the run was cancelled)
+
+WHAT'S NEW IN v1.1
+------------------
+* Save To: choose any output folder (remembered for next time).
+* File Name: tick "Keep original file name" to save each PDF with the name
+  the eFBR portal gives it (untick for CPR_<number>.pdf). If two files would
+  share a name, the CPR number is appended so nothing is overwritten.
+* Duplicates: repeated CPR numbers are detected on load, listed in the
+  Activity Log (with Excel row numbers), counted on the dashboard, shown in
+  the completion dialog, and written to a "Duplicates" sheet of the Excel
+  summary. Each CPR is downloaded only once.
